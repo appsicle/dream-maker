@@ -84,6 +84,52 @@ async function generateImage(prompt) {
   }
 }
 
+async function generateDetailedPrompt(briefDescription) {
+  console.log("🎯 Expanding brief description into detailed prompt:", briefDescription);
+  
+  const systemPrompt = `You are a creative prompt engineer specializing in converting brief descriptions into detailed, vivid prompts for image generation.
+Given a brief description, create a rich, detailed prompt that captures the essence of the scene while adding artistic direction, mood, lighting, and style.
+
+Your response must be a valid JSON object with this exact structure:
+{
+  "basePrompt": "the detailed prompt you've created",
+  "aspects": [
+    "aspect1 to vary - focus on one key element that could be changed",
+    "aspect2 to vary",
+    "aspect3 to vary",
+    "aspect4 to vary",
+    "aspect5 to vary"
+  ]
+}
+
+Each aspect should be a single phrase describing one element that could be varied (e.g., "lighting style", "camera angle", "mood", "time period", "weather").`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: briefDescription },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.8,
+    });
+
+    let parsedContent;
+    try {
+      parsedContent = JSON.parse(response.choices[0].message.content);
+      console.log("✅ Generated detailed prompt:", parsedContent);
+      return parsedContent;
+    } catch (parseError) {
+      console.error("❌ Failed to parse detailed prompt response:", parseError);
+      throw new Error("Invalid prompt generation response format");
+    }
+  } catch (error) {
+    console.error("❌ Prompt generation error:", error);
+    throw error;
+  }
+}
+
 async function generateVariations(prompt, variators) {
   console.log("🚀 Starting variation generation for prompt:", prompt);
   console.log("📝 Using variators:", variators);
@@ -171,14 +217,24 @@ Remember to respond with a valid JSON object containing exactly 5 variations.`;
 app.post("/generate", async (req, res) => {
   console.log("📥 Received request:", req.body);
   try {
-    const { prompt, variators } = req.body;
-    if (!prompt || !variators || !Array.isArray(variators)) {
+    const { prompt } = req.body;
+    if (!prompt) {
       console.error("❌ Invalid request format:", req.body);
       return res.status(400).json({ error: "Invalid input format" });
     }
-    const results = await generateVariations(prompt, variators);
+
+    // First, generate the detailed prompt and aspects
+    const detailedPrompt = await generateDetailedPrompt(prompt);
+    
+    // Then generate variations using the detailed prompt
+    const results = await generateVariations(detailedPrompt.basePrompt, detailedPrompt.aspects);
+    
     console.log("✅ Sending successful response");
-    res.json({ results });
+    res.json({ 
+      results,
+      basePrompt: detailedPrompt.basePrompt,
+      aspects: detailedPrompt.aspects
+    });
   } catch (error) {
     console.error("❌ Request processing error:", error);
     res.status(500).json({ error: error.message });
