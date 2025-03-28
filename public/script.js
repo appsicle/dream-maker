@@ -2,6 +2,7 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const prompt = document.getElementById('prompt').value;
+    const generateVideos = document.getElementById('generateVideos').checked;
     const submitButton = document.querySelector('button[type="submit"]');
     const resultsContainer = document.getElementById('results');
     
@@ -19,7 +20,8 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                prompt
+                prompt,
+                generateVideos
             }),
         });
         
@@ -68,6 +70,15 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
                         </div>
                     ` : ''}
                 </div>
+                ${result.video ? `
+                    <div class="video-container">
+                        <h4>Video</h4>
+                        <video controls autoplay loop muted>
+                            <source src="${result.video}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                ` : ''}
             `;
             
             variationDiv.innerHTML = content;

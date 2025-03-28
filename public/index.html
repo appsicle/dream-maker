@@ -137,6 +137,31 @@
             border-radius: 4px;
             margin-bottom: 20px;
         }
+
+        .options-container {
+            margin-bottom: 20px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .video-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .video-container video {
+            max-width: 100%;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -145,6 +170,14 @@
     <form id="promptForm">
         <label for="prompt">Describe your scene briefly:</label>
         <textarea id="prompt" required placeholder="Example: A cozy cafe at night"></textarea>
+        
+        <div class="options-container">
+            <div class="checkbox-container">
+                <input type="checkbox" id="generateVideos" name="generateVideos">
+                <label for="generateVideos">Generate videos from images (using kling 1.6)</label>
+            </div>
+        </div>
+        
         <button type="submit">Generate</button>
     </form>
 
